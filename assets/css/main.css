@@ -1,0 +1,30 @@
+@import url('https://fonts.googleapis.com/css?family=Nunito:400,700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.plus-icon::after {
+    content: url('../svg/plus.svg');
+    display: block;
+    height: 28px;
+    width: 28px;
+}
+
+.slidecontainer {
+    width: 100%; /* Width of the outside container */
+}
+
+/* The slider itself */
+.slider {
+    @apply rounded-full appearance-none w-full h-2.5 bg-result-green outline-none opacity-70 transition-opacity
+}
+
+/* Mouse-over effects */
+.slider:hover {
+    @apply opacity-100
+}
+
+/* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+.slider::-webkit-slider-thumb {
+    @apply rounded-full cursor-pointer bg-white h-2.5 w-2.5 appearance-none
+}
