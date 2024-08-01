@@ -1,0 +1,24 @@
+@import url('https://fonts.googleapis.com/css?family=Nunito:400,700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.plus-icon::after {
+    content: url('../svg/plus.svg');
+    display: block;
+    height: 28px;
+    width: 28px;
+}
+
+input[type="checkbox"] {
+    @apply text-lottery-blue-500 border-lottery-blue-500 border-2
+}
+
+.title-container {
+    @apply pt-4 bg-gradient-to-r from-lottery-green-500 to-lottery-yellow-500 text-white flex leading-10 md:text-4xl text-2xl h-16
+}
+
+.main-box-container {
+    @apply grid grid-cols-1 gap-4 place-items-center h-screen
+}
+
