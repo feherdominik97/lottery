@@ -1,6 +1,11 @@
 <script setup lang="ts">
+import { userStore } from "~/stores/user"
+
+const router = useRouter()
+const user = userStore()
+
 let speed = ref(1)
-let data: { id: any, ticket: any; result: any; matches: number; }[] = ref([])
+let lotteries = ref([])
 let currentResult = ref([0, 0, 0, 0, 0])
 let currentTicket = ref([1, 24, 35, 64, 85])
 let isRandomTicket = ref(false)
@@ -10,7 +15,7 @@ const numberOfWeeksInYear = 53
 const costOfTicket = 400
 const timer = ref()
 
-let numberOfTickets = computed(() => (data.value.length ?? 0))
+let numberOfTickets = computed(() => ((lotteries.value.length) ?? 0))
 let yearsSpent = computed(() => {
   return Math.round(numberOfTickets.value / numberOfWeeksInYear)
 })
@@ -18,10 +23,10 @@ let costOfTickets = computed(() => {
   return numberOfTickets.value * costOfTicket
 })
 let getAllMatches = () => {
-  if(!data) {
+  if(!lotteries.value.length) {
     return allMatches.value
   }
-  data.value.forEach((lottery: any) => {
+  lotteries.value.forEach((lottery: any) => {
     const matches = checkMatches(lottery.ticket, lottery.result)
 
     increaseMatches(matches)
@@ -57,13 +62,13 @@ let lotterySimulator = () => {
     result: currentResult.value,
     matches: currentMatches.value
   }
-  data.value.push(lottery)
+  lotteries.value.push(lottery)
 
   clearTimeout(timer.value)
   timer.value = setTimeout(() => lotterySimulator(), speed.value)
 }
 
-let randomNumbers = () => { //TODO: unique numbers, secure random.
+let randomNumbers = () => { //TODO: secure random.
   let numbers: number[] = []
   for (let i = 0; i < 5; i++) {
     numbers[i] = uniqueRandomNumber(numbers)
@@ -108,7 +113,7 @@ onBeforeUnmount(() => clearTimeout(timer.value))
   .main-box
     b.text-4xl Result
     .container
-      .summary
+      .summary(v-if="allMatches")
         label Number of tickets:
         span {{ numberOfTickets }}
         label Years spent:
@@ -119,7 +124,7 @@ onBeforeUnmount(() => clearTimeout(timer.value))
       .matches(v-for="(matches, i) in allMatches")
         span.text-xs {{ i + 2 }} matches
         span {{ matches }}
-    .grid-container(v-if="data")
+    .grid-container(v-if="lotteries")
       label.number-label Winning numbers:
       .number(v-for="numbers in currentResult")
         span {{ numbers }}
@@ -133,7 +138,7 @@ onBeforeUnmount(() => clearTimeout(timer.value))
           UCheckbox.random-checkbox(v-model="isRandomTicket")
     .row
       label Speed
-      URange.mt-2(color="lottery-green" min="1" max="1000" v-model="speed")
+      URange.mt-2(color="lottery-green" :min="1" :max="1000" v-model="speed")
 </template>
 
 <style scoped lang="scss">
@@ -192,7 +197,5 @@ onBeforeUnmount(() => clearTimeout(timer.value))
   @apply w-full md:w-80 mt-3 bg-lottery-green-500 rounded-xl grid grid-cols-2 gap-2 p-4 text-white max-sm:text-xs
 }
 
-.main-box {
-  @apply bg-white md:rounded-xl py-8 md:px-16 px-8 text-base text-lottery-blue-500 shadow-lg
-}
+
 </style>
