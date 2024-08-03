@@ -10,9 +10,6 @@ export default defineNuxtConfig({
       autoprefixer: {},
     },
   },
-  router: {
-    middleware: ['auth', 'global'],
-  },
   app: {
     head: {
       charset: 'utf-8',
@@ -26,6 +23,7 @@ export default defineNuxtConfig({
   },
   modules: [
       "@nuxt/ui",
-      "@pinia/nuxt"
+      "@pinia/nuxt",
+      "@pinia-plugin-persistedstate/nuxt"
   ]
 })

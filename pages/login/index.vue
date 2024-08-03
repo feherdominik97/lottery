@@ -47,6 +47,6 @@ async function login() {
       UInput.col-span-2(v-model="email" type="text")
       label.col-span-2.mt-5 Password
       UInput.col-span-2(v-model="password" type="password")
-      UButton.mt-5(label="Login" color="lottery-blue" @click="login")
+      UButton.mt-5(label="Login" color="lottery-blue" @keyup.enter="login" @click="login")
       UButton.mt-5(label="Registration" color="lottery-blue" @click="navigateTo({ path: '/register' })")
 </template>

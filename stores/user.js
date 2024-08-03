@@ -17,5 +17,6 @@ export const userStore = defineStore('user', {
             this.name = data.name
             this.email = data.email
         }
-    }
+    },
+    persist: true
 })

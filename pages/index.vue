@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { userStore } from "~/stores/user"
+import {run} from "node:test";
+
 
 const router = useRouter()
 const user = userStore()
+const runtimeConfig = useRuntimeConfig()
 
 let speed = ref(1)
 let lotteries = ref([])
@@ -14,6 +17,9 @@ let allMatches = ref([0, 0, 0, 0])
 const numberOfWeeksInYear = 53
 const costOfTicket = 400
 const timer = ref()
+const headers = {
+  Authorization: "Bearer " + user.get.token
+}
 
 let numberOfTickets = computed(() => ((lotteries.value.length) ?? 0))
 let yearsSpent = computed(() => {
@@ -41,7 +47,7 @@ let increaseMatches = (matches: number) => {
   allMatches.value[matches - 2]++
 }
 
-let lotterySimulator = () => {
+let lotterySimulator = async () => {
   if(currentMatches.value === 5) {
     return;
   }
@@ -57,12 +63,17 @@ let lotterySimulator = () => {
   increaseMatches(currentMatches.value)
 
   let lottery = {
-    id: 0,
     ticket: currentTicket.value,
     result: currentResult.value,
     matches: currentMatches.value
   }
   lotteries.value.push(lottery)
+
+  const { data } = await useFetch(`${runtimeConfig.public.apiBase}/lotteries`, {
+    method: 'post',
+    body: lottery,
+    headers: headers
+  })
 
   clearTimeout(timer.value)
   timer.value = setTimeout(() => lotterySimulator(), speed.value)
@@ -100,7 +111,22 @@ let checkMatches = (ticket: [], result: []) => {
   return matchesCount
 }
 
+let getLotteries = async () => {
+  const { data } = await useFetch(`${runtimeConfig.public.apiBase}/lotteries`, {
+    method: "GET",
+    headers: headers
+  })
+
+  return data
+}
+
 onMounted(() => {
+  if(!user.get.token) {
+    router.push("/login")
+  }
+
+  lotteries = getLotteries()
+
   timer.value = setTimeout(() => lotterySimulator(), speed.value * 1000)
   getAllMatches()
 })
