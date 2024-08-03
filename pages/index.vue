@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { userStore } from "~/stores/user"
-import {run} from "node:test";
-
+import { userStore } from "~/stores/user.js"
 
 const router = useRouter()
 const user = userStore()
@@ -14,6 +12,9 @@ let currentTicket = ref([1, 24, 35, 64, 85])
 let isRandomTicket = ref(false)
 let currentMatches = ref(0)
 let allMatches = ref([0, 0, 0, 0])
+let numberOfTickets = ref(0)
+
+const numberOfRunsBeforeSave = 1000
 const numberOfWeeksInYear = 53
 const costOfTicket = 400
 const timer = ref()
@@ -21,25 +22,14 @@ const headers = {
   Authorization: "Bearer " + user.get.token
 }
 
-let numberOfTickets = computed(() => ((lotteries.value.length) ?? 0))
 let yearsSpent = computed(() => {
   return Math.round(numberOfTickets.value / numberOfWeeksInYear)
 })
 let costOfTickets = computed(() => {
   return numberOfTickets.value * costOfTicket
 })
-let getAllMatches = () => {
-  if(!lotteries.value.length) {
-    return allMatches.value
-  }
-  lotteries.value.forEach((lottery: any) => {
-    const matches = checkMatches(lottery.ticket, lottery.result)
 
-    increaseMatches(matches)
-  })
-}
-
-let increaseMatches = (matches: number) => {
+const increaseMatches = (matches: number) => {
   if (matches < 2) {
     return
   }
@@ -47,7 +37,7 @@ let increaseMatches = (matches: number) => {
   allMatches.value[matches - 2]++
 }
 
-let lotterySimulator = async () => {
+const lotterySimulator = () => {
   if(currentMatches.value === 5) {
     return;
   }
@@ -62,77 +52,111 @@ let lotterySimulator = async () => {
   currentMatches.value = checkMatches(currentTicket.value, currentResult.value)
   increaseMatches(currentMatches.value)
 
-  let lottery = {
-    ticket: currentTicket.value,
-    result: currentResult.value,
-    matches: currentMatches.value
-  }
-  lotteries.value.push(lottery)
+  numberOfTickets.value++
 
-  const { data } = await useFetch(`${runtimeConfig.public.apiBase}/lotteries`, {
-    method: 'post',
-    body: lottery,
-    headers: headers
-  })
+  if (numberOfTickets.value > 0 && numberOfTickets.value % numberOfRunsBeforeSave === 0) {
+    saveLotteries()
+  }
+
 
   clearTimeout(timer.value)
   timer.value = setTimeout(() => lotterySimulator(), speed.value)
 }
 
-let randomNumbers = () => { //TODO: secure random.
-  let numbers: number[] = []
+function generateRandomNumberBetween(min: number, max: number): number {
+  const range = max - min + 1;
+  const array = new Uint32Array(1);
+  let randomNumber;
+
+  do {
+    window.crypto.getRandomValues(array);
+    randomNumber = array[0] % range;
+  } while (array[0] - randomNumber + range - 1 < 0);
+
+  return min + randomNumber;
+}
+
+function randomNumbers(): number[] {
+  const randomNumbers: number[] = [];
   for (let i = 0; i < 5; i++) {
-    numbers[i] = uniqueRandomNumber(numbers)
+    randomNumbers.push(generateRandomNumberBetween(1, 90));
   }
-  return numbers
+  return randomNumbers;
 }
 
-let randomNumber = () => {
-  return Math.abs(Math.round(Math.random() * 100 - 10))
-}
-let uniqueRandomNumber = (numbers: number[]) => {
-  let random = randomNumber()
-  while (numbers.includes(random))
-    random = randomNumber()
 
-  return random
-}
+function checkMatches(ticket: number[], result: number[]): number {
+  let matchesCount = 0;
+  const resultSet = new Set(result);
 
-let checkMatches = (ticket: [], result: []) => {
-  let matchesCount = 0
-  for(const resultKey in result) {
-    for (const ticketKey in ticket) {
-      if (result[resultKey] === ticket[ticketKey]) {
-        matchesCount++
-      }
+  for (const number of ticket) {
+    if (resultSet.has(number)) {
+      matchesCount++;
     }
   }
 
-  return matchesCount
+  return matchesCount;
 }
 
-let getLotteries = async () => {
-  const { data } = await useFetch(`${runtimeConfig.public.apiBase}/lotteries`, {
-    method: "GET",
-    headers: headers
-  })
+const getLotteries = async () => {
+  try {
+    const response = await $fetch(`${runtimeConfig.public.apiBase}/lotteries`, {
+      method: "GET",
+      headers: headers,
+    });
 
-  return data
-}
+    if (response.success) {
+      allMatches.value = [
+        response.data?.matches_2 ?? 0,
+        response.data?.matches_3 ?? 0,
+        response.data?.matches_4 ?? 0,
+        response.data?.matches_5 ?? 0,
+      ]
 
-onMounted(() => {
-  if(!user.get.token) {
-    router.push("/login")
+      numberOfTickets.value = response.data?.number_of_tickets ?? 0
+    } else {
+      console.error('Error fetching lotteries:', response.message);
+    }
+  } catch (e) {
+    console.log(e)
   }
 
-  lotteries = getLotteries()
+};
+
+const saveLotteries = () => {
+  const body = {
+    id: 1,
+    matches_2: allMatches.value[0],
+    matches_3: allMatches.value[1],
+    matches_4: allMatches.value[2],
+    matches_5: allMatches.value[3],
+    number_of_tickets: numberOfTickets.value
+  }
+  try {
+    const response = $fetch(`${runtimeConfig.public.apiBase}/lotteries`, {
+      method: 'POST',
+      body: body,
+      headers: headers,
+    });
+
+    if (response.success) {
+      console.error('Error saving lotteries:', response.success);
+    }
+  } catch (e) {
+    console.log(e)
+  }
+};
+
+onMounted(async () => {
+  if(!user.get.token) {
+    await router.push("/login")
+  }
+
+  await getLotteries()
 
   timer.value = setTimeout(() => lotterySimulator(), speed.value * 1000)
-  getAllMatches()
 })
 onBeforeUnmount(() => clearTimeout(timer.value))
-
-
 </script>
 
 <template lang="pug">

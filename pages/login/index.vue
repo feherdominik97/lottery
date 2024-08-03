@@ -44,9 +44,9 @@ async function login() {
     b.text-4xl Login
     .grid.gird-cols-2.place-items-center
       label.col-span-2.mt-5 E-mail
-      UInput.col-span-2(v-model="email" type="text")
+      UInput.col-span-2(v-model="email" type="text" @keyup.enter="login")
       label.col-span-2.mt-5 Password
-      UInput.col-span-2(v-model="password" type="password")
-      UButton.mt-5(label="Login" color="lottery-blue" @keyup.enter="login" @click="login")
+      UInput.col-span-2(v-model="password" type="password" @keyup.enter="login")
+      UButton.mt-5(label="Login" color="lottery-blue" @click="login")
       UButton.mt-5(label="Registration" color="lottery-blue" @click="navigateTo({ path: '/register' })")
 </template>

@@ -36,7 +36,7 @@ async function register() {
       label.col-span-2.mt-5 Username:
       UInput.col-span-2(v-model="name" type="text")
       label.col-span-2.mt-5 Password:
-      UInput.col-span-2(v-model="password" type="text")
+      UInput.col-span-2(v-model="password" type="password")
       label.col-span-2.mt-5 Password again:
       UInput.col-span-2(v-model="c_password" type="password")
       UButton.mt-5(label="Login" color="lottery-blue" v-on:click="navigateTo({ path: '/login' })" )
