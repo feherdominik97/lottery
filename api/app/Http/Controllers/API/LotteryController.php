@@ -14,9 +14,9 @@ class LotteryController extends BaseController
      */
     public function index(): JsonResponse
     {
-        $lotteries = Lottery::query()->get()->first();
+        $data = Lottery::query()->get()->first();
 
-        return $this->sendResponse($lotteries, 'OK');
+        return $this->sendResponse($data, 'OK');
     }
 
     /**

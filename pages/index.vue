@@ -150,11 +150,13 @@ const saveLotteries = () => {
 onMounted(async () => {
   if(!user.get.token) { //TODO: authorization
     await router.push("/login")
+
+    return
   }
 
   await getLotteries()
 
-  timer.value = setTimeout(() => lotterySimulator(), speed.value * 1000)
+  timer.value = setTimeout(() => lotterySimulator(), speed.value)
 })
 onBeforeUnmount(() => clearTimeout(timer.value))
 </script>
