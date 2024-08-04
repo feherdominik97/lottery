@@ -70,6 +70,9 @@
             <li>Migrate and seed database:
                 <pre><code>php artisan migrate --seed</code></pre>
             </li>
+            <li>Run tests:
+                <pre><code>php artisan test</code></pre>
+            </li>
             <li>Run server:
                 <pre><code>php artisan serve</code></pre>
             </li>
