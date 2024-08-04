@@ -12,22 +12,13 @@ let currentTicket = ref([1, 24, 35, 64, 85])
 let isRandomTicket = ref(false)
 let currentMatches = ref(0)
 let allMatches = ref([0, 0, 0, 0])
-let numberOfTickets = ref(0)
+let numberOfTickets = 0
 
 const numberOfRunsBeforeSave = 1000
-const numberOfWeeksInYear = 53
-const costOfTicket = 400
 const timer = ref()
 const headers = { //TODO: authorization
   Authorization: "Bearer " + user.get.token
 }
-
-let yearsSpent = computed(() => {
-  return Math.round(numberOfTickets.value / numberOfWeeksInYear)
-})
-let costOfTickets = computed(() => {
-  return numberOfTickets.value * costOfTicket
-})
 
 const increaseMatches = (matches: number) => {
   if (matches < 2) {
@@ -52,9 +43,9 @@ const lotterySimulator = () => {
   currentMatches.value = checkMatches(currentTicket.value, currentResult.value)
   increaseMatches(currentMatches.value)
 
-  numberOfTickets.value++
+  numberOfTickets++
 
-  if (numberOfTickets.value > 0 && numberOfTickets.value % numberOfRunsBeforeSave === 0) {
+  if (numberOfTickets > 0 && numberOfTickets % numberOfRunsBeforeSave === 0) {
     saveLotteries()
   }
 
@@ -113,7 +104,7 @@ const getLotteries = async () => {
         response.data?.matches_5 ?? 0,
       ]
 
-      numberOfTickets.value = response.data?.number_of_tickets ?? 0
+      numberOfTickets = response.data?.number_of_tickets ?? 0
     } else {
       console.error('Error fetching lotteries:', response.message)
     }
@@ -130,7 +121,7 @@ const saveLotteries = () => {
     matches_3: allMatches.value[1],
     matches_4: allMatches.value[2],
     matches_5: allMatches.value[3],
-    number_of_tickets: numberOfTickets.value
+    number_of_tickets: numberOfTickets
   }
   try {
     const response = $fetch(`${runtimeConfig.public.apiBase}/lotteries`, {
@@ -165,17 +156,8 @@ onBeforeUnmount(() => clearTimeout(timer.value))
   .main-box
     b.text-4xl Result
     .container
-      .summary(v-if="allMatches")
-        label Number of tickets:
-        span {{ numberOfTickets }}
-        label Years spent:
-        span(:class="{'underline': allMatches[3], 'font-bold': allMatches[3], 'text-red-400': allMatches[3]}") {{ yearsSpent }}
-        label Cost of tickets:
-        span {{ costOfTickets }} Ft
-    .matches-container(v-if="allMatches")
-      .matches(v-for="(matches, i) in allMatches")
-        span.text-xs {{ i + 2 }} matches
-        span {{ matches }}
+      Summary(:number-of-tickets="numberOfTickets" :all-matches="allMatches")
+    Matches(:all-matches="allMatches")
     .grid-container(v-if="lotteries")
       label.number-label Winning numbers:
       .number(v-for="numbers in currentResult")
@@ -194,7 +176,6 @@ onBeforeUnmount(() => clearTimeout(timer.value))
 </template>
 
 <style scoped lang="scss">
-
 .row {
   @apply container mt-5
 }
@@ -220,34 +201,4 @@ onBeforeUnmount(() => clearTimeout(timer.value))
 .grid-checkbox {
   @apply py-2 w-8 flex justify-center max-md:col-span-5
 }
-
-.matches:first-child {
-  @apply md:rounded-l-xl rounded-tl-xl
-}
-
-.matches:nth-child(2) {
-  @apply max-md:rounded-tr-xl
-}
-
-.matches:nth-child(3) {
-  @apply max-md:rounded-bl-xl
-}
-
-.matches:last-child {
-  @apply md:rounded-r-xl rounded-br-xl
-}
-
-.matches {
-  @apply border grid grid-cols-1 place-items-center p-4 border-lottery-yellow-500 shadow px-6
-}
-
-.matches-container {
-  @apply container mt-5 flex font-bold max-md:grid max-md:grid-cols-2 max-md:gap-0
-}
-
-.summary {
-  @apply w-full md:w-80 mt-3 bg-lottery-green-500 rounded-xl grid grid-cols-2 gap-2 p-4 text-white max-sm:text-xs
-}
-
-
 </style>

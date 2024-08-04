@@ -4,6 +4,11 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
   devtools: { enabled: true },
   css: ['~/assets/scss/main.scss'],
+  components: [
+    {
+      path: "~/components"
+    }
+  ],
   postcss: {
     plugins: {
       tailwindcss: {},
@@ -24,6 +29,7 @@ export default defineNuxtConfig({
   modules: [
       "@nuxt/ui",
       "@pinia/nuxt",
-      "@pinia-plugin-persistedstate/nuxt"
+      "@pinia-plugin-persistedstate/nuxt",
+      "@nuxt/test-utils/module"
   ]
 })
