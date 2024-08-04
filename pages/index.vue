@@ -18,7 +18,7 @@ const numberOfRunsBeforeSave = 1000
 const numberOfWeeksInYear = 53
 const costOfTicket = 400
 const timer = ref()
-const headers = {
+const headers = { //TODO: authorization
   Authorization: "Bearer " + user.get.token
 }
 
@@ -148,7 +148,7 @@ const saveLotteries = () => {
 };
 
 onMounted(async () => {
-  if(!user.get.token) {
+  if(!user.get.token) { //TODO: authorization
     await router.push("/login")
   }
 
