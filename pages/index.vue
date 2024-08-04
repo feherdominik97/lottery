@@ -39,7 +39,7 @@ const increaseMatches = (matches: number) => {
 
 const lotterySimulator = () => {
   if(currentMatches.value === 5) {
-    return;
+    return
   }
 
   currentMatches.value = 0
@@ -64,38 +64,38 @@ const lotterySimulator = () => {
 }
 
 function generateRandomNumberBetween(min: number, max: number): number {
-  const range = max - min + 1;
-  const array = new Uint32Array(1);
-  let randomNumber;
+  const range = max - min + 1
+  const array = new Uint32Array(1)
+  let randomNumber
 
   do {
-    window.crypto.getRandomValues(array);
-    randomNumber = array[0] % range;
-  } while (array[0] - randomNumber + range - 1 < 0);
+    window.crypto.getRandomValues(array)
+    randomNumber = array[0] % range
+  } while (array[0] - randomNumber + range - 1 < 0)
 
-  return min + randomNumber;
+  return min + randomNumber
 }
 
 function randomNumbers(): number[] {
-  const randomNumbers: number[] = [];
+  const randomNumbers: number[] = []
   for (let i = 0; i < 5; i++) {
-    randomNumbers.push(generateRandomNumberBetween(1, 90));
+    randomNumbers.push(generateRandomNumberBetween(1, 90))
   }
-  return randomNumbers;
+  return randomNumbers
 }
 
 
 function checkMatches(ticket: number[], result: number[]): number {
-  let matchesCount = 0;
-  const resultSet = new Set(result);
+  let matchesCount = 0
+  const resultSet = new Set(result)
 
   for (const number of ticket) {
     if (resultSet.has(number)) {
-      matchesCount++;
+      matchesCount++
     }
   }
 
-  return matchesCount;
+  return matchesCount
 }
 
 const getLotteries = async () => {
@@ -103,7 +103,7 @@ const getLotteries = async () => {
     const response = await $fetch(`${runtimeConfig.public.apiBase}/lotteries`, {
       method: "GET",
       headers: headers,
-    });
+    })
 
     if (response.success) {
       allMatches.value = [
@@ -115,13 +115,13 @@ const getLotteries = async () => {
 
       numberOfTickets.value = response.data?.number_of_tickets ?? 0
     } else {
-      console.error('Error fetching lotteries:', response.message);
+      console.error('Error fetching lotteries:', response.message)
     }
   } catch (e) {
     console.log(e)
   }
 
-};
+}
 
 const saveLotteries = () => {
   const body = {
@@ -137,15 +137,15 @@ const saveLotteries = () => {
       method: 'POST',
       body: body,
       headers: headers,
-    });
+    })
 
     if (response.success) {
-      console.error('Error saving lotteries:', response.success);
+      console.error('Error saving lotteries:', response.success)
     }
   } catch (e) {
     console.log(e)
   }
-};
+}
 
 onMounted(async () => {
   if(!user.get.token) { //TODO: authorization
