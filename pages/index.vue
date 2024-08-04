@@ -154,7 +154,9 @@ onBeforeUnmount(() => clearTimeout(timer.value))
 
 <template lang="pug">
   .main-box
-    b.text-4xl Result
+    .container.flex.items-center
+      b.text-4xl Result
+      b.text-2xl.ml-auto User: {{ user.get.name }}
     .container
       Summary(:number-of-tickets="numberOfTickets" :all-matches="allMatches")
     Matches(:all-matches="allMatches")
