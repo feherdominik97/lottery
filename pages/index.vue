@@ -6,136 +6,163 @@ const user = userStore()
 const runtimeConfig = useRuntimeConfig()
 
 let speed = ref(1)
-let lotteries = ref([])
-let currentResult = ref([0, 0, 0, 0, 0])
-let currentTicket = ref([1, 24, 35, 64, 85])
 let isRandomTicket = ref(false)
-let currentMatches = ref(0)
-let allMatches = ref([0, 0, 0, 0])
-let numberOfTickets = 0
 
-const numberOfRunsBeforeSave = 1000
-const timer = ref()
-const headers = { //TODO: authorization
-  Authorization: "Bearer " + user.get.token
-}
+const { currentResult, currentTicket, allMatches, numberOfTickets, timer, lotterySimulator } = useLottery(speed, isRandomTicket)
+const { saveLotteries, getLotteries } = useRequests(numberOfTickets)
 
-const increaseMatches = (matches: number) => {
-  if (matches < 2) {
-    return
+function useLottery(speed: Ref<number>, isRandomTicket: Ref<boolean>) {
+  let currentResult = ref([0, 0, 0, 0, 0])
+  let currentTicket = ref([1, 24, 35, 64, 85])
+  let currentMatches = 0
+  let allMatches = ref([0, 0, 0, 0])
+  let numberOfTickets = ref(0)
+
+  const numberOfRunsBeforeSave = 1000
+  const timer = ref()
+
+  function useMatches() {
+    function checkMatches(ticket: number[], result: number[]): number {
+      let matchesCount = 0
+      const resultSet = new Set(result)
+
+      for (const number of ticket) {
+        if (resultSet.has(number)) {
+          matchesCount++
+        }
+      }
+
+      return matchesCount
+    }
+
+    const increaseMatches = (matches: number) => {
+      if (matches < 2) {
+        return
+      }
+
+      allMatches.value[matches - 2]++
+    }
+
+    return { checkMatches, increaseMatches}
   }
 
-  allMatches.value[matches - 2]++
-}
+  function useRandomNumbers() {
+    function generateRandomNumberBetween(min: number, max: number): number {
+      const range = max - min + 1
+      const array = new Uint32Array(1)
+      let randomNumber
 
-const lotterySimulator = () => {
-  if(currentMatches.value === 5) {
-    return
+      do {
+        window.crypto.getRandomValues(array)
+        randomNumber = array[0] % range
+      } while (array[0] - randomNumber + range - 1 < 0)
+
+      return min + randomNumber
+    }
+
+    function randomNumbers(): number[] {
+      const randomNumbers: number[] = []
+      for (let i = 0; i < 5; i++) {
+        randomNumbers.push(generateRandomNumberBetween(1, 90))
+      }
+      return randomNumbers
+    }
+
+    return { randomNumbers }
   }
 
-  currentMatches.value = 0
+  const { checkMatches, increaseMatches } = useMatches()
+  const { randomNumbers } = useRandomNumbers()
 
-  if (isRandomTicket.value) {
-    currentTicket.value = randomNumbers()
+  const lotterySimulator = () => {
+    if(currentMatches === 5) {
+      return
+    }
+
+    currentMatches = 0
+
+    if (isRandomTicket.value) {
+      currentTicket.value = randomNumbers()
+    }
+
+    currentResult.value = randomNumbers()
+    currentMatches = checkMatches(currentTicket.value, currentResult.value)
+    increaseMatches(currentMatches)
+
+    numberOfTickets.value++
+
+    if (numberOfTickets.value > 0 && numberOfTickets.value % numberOfRunsBeforeSave === 0) {
+      saveLotteries()
+    }
+
+
+    clearTimeout(timer.value)
+    timer.value = setTimeout(() => lotterySimulator(), speed.value)
   }
 
-  currentResult.value = randomNumbers()
-  currentMatches.value = checkMatches(currentTicket.value, currentResult.value)
-  increaseMatches(currentMatches.value)
 
-  numberOfTickets++
 
-  if (numberOfTickets > 0 && numberOfTickets % numberOfRunsBeforeSave === 0) {
-    saveLotteries()
+
+
+  return { currentResult, currentTicket, allMatches, numberOfTickets, timer, lotterySimulator }
+}
+
+function useRequests(numberOfTickets: Ref<number>) {
+  const headers = { //TODO: authorization
+    Authorization: "Bearer " + user.get.token
   }
 
 
-  clearTimeout(timer.value)
-  timer.value = setTimeout(() => lotterySimulator(), speed.value)
-}
+  const getLotteries = async () => {
+    try {
+      const response = await $fetch(`${runtimeConfig.public.apiBase}/lotteries`, {
+        method: "GET",
+        headers: headers,
+      })
 
-function generateRandomNumberBetween(min: number, max: number): number {
-  const range = max - min + 1
-  const array = new Uint32Array(1)
-  let randomNumber
+      if (response.success) {
+        allMatches.value = [
+          response.data?.matches_2 ?? 0,
+          response.data?.matches_3 ?? 0,
+          response.data?.matches_4 ?? 0,
+          response.data?.matches_5 ?? 0,
+        ]
 
-  do {
-    window.crypto.getRandomValues(array)
-    randomNumber = array[0] % range
-  } while (array[0] - randomNumber + range - 1 < 0)
+        numberOfTickets.value = response.data?.number_of_tickets ?? 0
+      } else {
+        console.error('Error fetching lotteries:', response.message)
+      }
+    } catch (e) {
+      console.log(e)
+    }
 
-  return min + randomNumber
-}
-
-function randomNumbers(): number[] {
-  const randomNumbers: number[] = []
-  for (let i = 0; i < 5; i++) {
-    randomNumbers.push(generateRandomNumberBetween(1, 90))
   }
-  return randomNumbers
-}
 
+  const saveLotteries = () => {
+    const body = {
+      id: 1,
+      matches_2: allMatches.value[0],
+      matches_3: allMatches.value[1],
+      matches_4: allMatches.value[2],
+      matches_5: allMatches.value[3],
+      number_of_tickets: numberOfTickets.value
+    }
+    try {
+      const response = $fetch(`${runtimeConfig.public.apiBase}/lotteries`, {
+        method: 'POST',
+        body: body,
+        headers: headers,
+      })
 
-function checkMatches(ticket: number[], result: number[]): number {
-  let matchesCount = 0
-  const resultSet = new Set(result)
-
-  for (const number of ticket) {
-    if (resultSet.has(number)) {
-      matchesCount++
+      if (response.success) {
+        console.error('Error saving lotteries:', response.success)
+      }
+    } catch (e) {
+      console.log(e)
     }
   }
 
-  return matchesCount
-}
-
-const getLotteries = async () => {
-  try {
-    const response = await $fetch(`${runtimeConfig.public.apiBase}/lotteries`, {
-      method: "GET",
-      headers: headers,
-    })
-
-    if (response.success) {
-      allMatches.value = [
-        response.data?.matches_2 ?? 0,
-        response.data?.matches_3 ?? 0,
-        response.data?.matches_4 ?? 0,
-        response.data?.matches_5 ?? 0,
-      ]
-
-      numberOfTickets = response.data?.number_of_tickets ?? 0
-    } else {
-      console.error('Error fetching lotteries:', response.message)
-    }
-  } catch (e) {
-    console.log(e)
-  }
-
-}
-
-const saveLotteries = () => {
-  const body = {
-    id: 1,
-    matches_2: allMatches.value[0],
-    matches_3: allMatches.value[1],
-    matches_4: allMatches.value[2],
-    matches_5: allMatches.value[3],
-    number_of_tickets: numberOfTickets
-  }
-  try {
-    const response = $fetch(`${runtimeConfig.public.apiBase}/lotteries`, {
-      method: 'POST',
-      body: body,
-      headers: headers,
-    })
-
-    if (response.success) {
-      console.error('Error saving lotteries:', response.success)
-    }
-  } catch (e) {
-    console.log(e)
-  }
+  return { saveLotteries, getLotteries }
 }
 
 onMounted(async () => {
@@ -160,7 +187,7 @@ onBeforeUnmount(() => clearTimeout(timer.value))
     .container
       Summary(:number-of-tickets="numberOfTickets" :all-matches="allMatches")
     Matches(:all-matches="allMatches")
-    .grid-container(v-if="lotteries")
+    .grid-container
       label.number-label Winning numbers:
       .number(v-for="numbers in currentResult")
         span {{ numbers }}
