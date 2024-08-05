@@ -4,15 +4,21 @@ const props = defineProps<{
   numberOfTickets?: number
 }>()
 
-const numberOfWeeksInYear = 53
-const costOfTicket = 400
+const { yearsSpent, costOfTickets } = useSummary()
 
-let yearsSpent = computed(() => {
-  return Math.round(props.numberOfTickets / numberOfWeeksInYear)
-})
-let costOfTickets = computed(() => {
-  return props.numberOfTickets * costOfTicket
-})
+function useSummary() {
+  const numberOfWeeksInYear = 53
+  const costOfTicket = 400
+
+  let yearsSpent = computed(() => {
+    return Math.round(props.numberOfTickets / numberOfWeeksInYear)
+  })
+  let costOfTickets = computed(() => {
+    return props.numberOfTickets * costOfTicket
+  })
+
+  return { yearsSpent, costOfTickets }
+}
 </script>
 
 <template lang="pug">
