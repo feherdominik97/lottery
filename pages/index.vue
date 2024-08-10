@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import { userStore } from "~/stores/user.js"
+import {useAuthStore} from "~/stores/auth";
 
-const router = useRouter()
-const user = userStore()
+definePageMeta({
+  middleware: 'auth'
+})
+
+const user = useAuthStore()
 const runtimeConfig = useRuntimeConfig()
+const token = useCookie("token")
 
 let speed = ref(1)
 let isRandomTicket = ref(false)
@@ -17,8 +21,6 @@ function useLottery(speed: Ref<number>, isRandomTicket: Ref<boolean>) {
   let currentMatches = 0
   let allMatches = ref([0, 0, 0, 0])
   let numberOfTickets = ref(0)
-
-  const numberOfRunsBeforeSave = 1000
   const timer = ref()
 
   function useMatches() {
@@ -91,7 +93,7 @@ function useLottery(speed: Ref<number>, isRandomTicket: Ref<boolean>) {
 
     numberOfTickets.value++
 
-    if (numberOfTickets.value > 0 && numberOfTickets.value % numberOfRunsBeforeSave === 0) {
+    if (numberOfTickets.value > 0 && numberOfTickets.value % runtimeConfig.public.numberOfRunsBeforeSave === 0) {
       saveLotteries()
     }
 
@@ -108,10 +110,9 @@ function useLottery(speed: Ref<number>, isRandomTicket: Ref<boolean>) {
 }
 
 function useRequests(numberOfTickets: Ref<number>) {
-  const headers = { //TODO: authorization
-    Authorization: "Bearer " + user.get.token
+  const headers = {
+    Authorization: token.value
   }
-
 
   const getLotteries = async () => {
     try {
@@ -166,12 +167,6 @@ function useRequests(numberOfTickets: Ref<number>) {
 }
 
 onMounted(async () => {
-  if(!user.get.token) { //TODO: authorization
-    await router.push("/login")
-
-    return
-  }
-
   await getLotteries()
 
   timer.value = setTimeout(() => lotterySimulator(), speed.value)
@@ -183,7 +178,7 @@ onBeforeUnmount(() => clearTimeout(timer.value))
   .main-box
     .container.flex.items-center
       b.text-4xl Result
-      b.text-2xl.ml-auto User: {{ user.get.name }}
+      b.text-2xl.ml-auto User: {{ user.getName }}
     .container
       Summary(:number-of-tickets="numberOfTickets" :all-matches="allMatches")
     Matches(:all-matches="allMatches")
