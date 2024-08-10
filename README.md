@@ -46,10 +46,6 @@
         <h2>Installation Instructions</h2>
         <p>Follow the steps below to install the Lottery Simulator:</p>
         <ol>
-            <li>Clone the repository and navigate to project directory:
-                <pre><code>git clone https://github.com/feherdominik97/lottery.git
-cd lottery</code></pre>
-            </li>
             <li>Install the required dependencies and run tests:
                 <pre><code>npm i
 npm run test:unit</code></pre>
