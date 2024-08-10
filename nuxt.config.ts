@@ -23,7 +23,8 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      apiBase: 'http://localhost:8000/api'
+      apiBase: 'http://localhost:8000/api',
+      numberOfRunsBeforeSave: 1000
     }
   },
   modules: [

@@ -10,6 +10,13 @@
     width: 28px;
 }
 
+.logout-icon::after {
+    content: url('../svg/logout.svg');
+    display: block;
+    height: 28px;
+    width: 28px;
+}
+
 input[type="checkbox"] {
     @apply text-lottery-blue-500 border-lottery-blue-500 border-2;
 }

@@ -1,42 +1,23 @@
 <script setup>
-import { userStore } from "~/stores/user.js"
+import { storeToRefs } from 'pinia'
+import { useAuthStore } from '~/stores/auth'
 
+const { authenticateUser } = useAuthStore()
+
+const { authenticated } = storeToRefs(useAuthStore())
+
+const user = ref({
+  email: '',
+  password: '',
+})
 const router = useRouter()
-const errors = ref([])
-const runtimeConfig = useRuntimeConfig()
-const user = userStore()
 
-let email = ref("")
-let password = ref("")
-
-async function login() {
-  try {
-    const { data } = await useFetch(
-        `${runtimeConfig.public.apiBase}/login`, {
-          method: "POST",
-          body: {
-            email: email.value,
-            password: password.value,
-          }
-        })
-        .then(({ data, error }) => {
-          if (error.value) {
-            console.log('Fetch error:', error.value)
-            return;
-          }
-
-          if (data.value.data) {
-            user.set(data.value.data)
-
-            router.push('/')
-          }
-        })
-
-
-  } catch (e) {
-    console.log('Error in login function:', e)
+const login = async () => {
+  await authenticateUser(user.value)
+  if (authenticated) {
+    await router.push('/')
   }
-}
+};
 </script>
 
 <template lang="pug">
@@ -44,9 +25,9 @@ async function login() {
     b.text-4xl Login
     .grid.gird-cols-2.place-items-center
       label.col-span-2.mt-5 E-mail
-      UInput.col-span-2(v-model="email" type="text" @keyup.enter="login")
+      UInput.col-span-2(v-model="user.email" type="text" @keyup.enter="login")
       label.col-span-2.mt-5 Password
-      UInput.col-span-2(v-model="password" type="password" @keyup.enter="login")
+      UInput.col-span-2(color="lottery-green" v-model="user.password" type="password" @keyup.enter="login")
       UButton.mt-5(label="Login" color="lottery-blue" @click="login")
       UButton.mt-5(label="Registration" color="lottery-blue" @click="navigateTo({ path: '/register' })")
 </template>
