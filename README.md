@@ -46,35 +46,21 @@
         <h2>Installation Instructions</h2>
         <p>Follow the steps below to install the Lottery Simulator:</p>
         <ol>
-            <li>Clone the repository:
-                <pre><code>git clone https://github.com/feherdominik97/lottery.git</code></pre>
+            <li>Clone the repository and navigate to project directory:
+                <pre><code>git clone https://github.com/feherdominik97/lottery.git
+cd lottery</code></pre>
             </li>
-            <li>Navigate to the project directory:
-                <pre><code>cd lottery</code></pre>
+            <li>Install the required dependencies and run tests:
+                <pre><code>npm i
+npm run test:unit</code></pre>
             </li>
-            <li>Install the required dependencies:
-                <pre><code>npm i</code></pre>
-            </li>
-            <li>Run tests:
-                <pre><code>npm run test:unit</code></pre>
-            </li>
-            <li>Navigate to api directory:
-                <pre><code>cd api</code></pre>
-            </li>
-            <li>Install the required dependencies:
-                <pre><code>composer install</code></pre>
-            </li>
-            <li>Copy .env.example:
-                <pre><code>copy .env.example .env</code></pre>
-            </li>
-            <li>Migrate and seed database:
-                <pre><code>php artisan migrate --seed</code></pre>
-            </li>
-            <li>Run tests:
-                <pre><code>php artisan test</code></pre>
-            </li>
-            <li>Run server:
-                <pre><code>php artisan serve</code></pre>
+            <li>Commands for server:
+                <pre><code>cd api
+composer install
+copy .env.example .env
+php artisan migrate --seed
+php artisan test
+php artisan serve</code></pre>
             </li>
             <li>Run the application:
                 <pre><code>npm run dev</code></pre>
