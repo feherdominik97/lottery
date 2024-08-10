@@ -2,11 +2,12 @@
 
 namespace Database\Factories;
 
+use App\Models\Lottery;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Ramsey\Uuid\Type\Integer;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Lottery>
+ * @extends Factory<Lottery>
  */
 class LotteryFactory extends Factory
 {
